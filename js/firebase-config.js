@@ -20,12 +20,13 @@ import {
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID",
+ apiKey: "AIzaSyBWdKIpCIdgQIXmb3pLL3QkZ7H9KpKzuR0",
+  authDomain: "del-horno.firebaseapp.com",
+  projectId: "del-horno",
+  storageBucket: "del-horno.firebasestorage.app",
+  messagingSenderId: "782553370053",
+  appId: "1:782553370053:web:35231fe23bc19c1b308fac",
+  measurementId: "G-52SHDPLG4V"
 };
 
 export const app = initializeApp(firebaseConfig);
