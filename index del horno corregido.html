@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panadería Del Horno — Panel de gestión</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --carbon:#0B2A4A; --carbon-alto:#0F3760; --carbon-borde:#1F5588;
+  --harina:#F5FAFF; --harina-tenue:#A9C8E8;
+  --miel:#FFC72C; --miel-fuerte:#FFB000; --miel-tenue:rgba(255,199,44,.16);
+  --ladrillo:#FF5A4E; --ladrillo-tenue:rgba(255,90,78,.16);
+  --oliva:#2FD673; --oliva-tenue:rgba(47,214,115,.16);
+  --f-display:'Fraunces',serif; --f-body:'Inter',system-ui,sans-serif; --f-mono:'IBM Plex Mono',monospace;
+  --sidebar-w:240px; --radius:10px; --radius-sm:6px; --shadow:0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--carbon);color:var(--harina);font-family:var(--f-body);-webkit-font-smoothing:antialiased;}
+h1,h2,h3,.f-display{font-family:var(--f-display);font-weight:600;letter-spacing:.2px;}
+.mono{font-family:var(--f-mono);}
+a{color:inherit;}
+button{font-family:inherit;}
+::selection{background:var(--miel);color:var(--carbon);}
+:focus-visible{outline:2px solid var(--miel);outline-offset:2px;}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(600px 400px at 15% 10%, rgba(255,199,44,.12), transparent 60%),
+             radial-gradient(500px 500px at 90% 90%, rgba(31,85,136,.35), transparent 60%), var(--carbon);
+  padding:24px;}
+.login-card{width:100%;max-width:380px;background:var(--carbon-alto);border:1px solid var(--carbon-borde);
+  border-radius:var(--radius);padding:36px 32px;box-shadow:var(--shadow);}
+.login-stamp{width:56px;height:56px;border-radius:50%;border:2px solid var(--miel);display:flex;align-items:center;
+  justify-content:center;font-family:var(--f-display);font-size:22px;color:var(--miel);margin:0 auto 18px;transform:rotate(-4deg);}
+.login-card h1{font-size:22px;text-align:center;margin:0 0 4px;}
+.login-sub{text-align:center;color:var(--harina-tenue);font-size:13px;margin:0 0 28px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;color:var(--harina-tenue);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+.field input, select, textarea{width:100%;background:var(--carbon);border:1px solid var(--carbon-borde);color:var(--harina);
+  border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:inherit;}
+.field input:focus, select:focus, textarea:focus{border-color:var(--miel);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--miel);color:var(--carbon);
+  border:none;border-radius:var(--radius-sm);padding:11px 18px;font-weight:600;font-size:14px;cursor:pointer;
+  transition:transform .1s ease, background .15s ease;}
+.btn:hover{background:var(--miel-fuerte);}
+.btn:active{transform:scale(.98);}
+.btn-block{width:100%;}
+.btn-ghost{background:transparent;color:var(--harina);border:1px solid var(--carbon-borde);}
+.btn-ghost:hover{border-color:var(--miel);}
+.btn-sm{padding:7px 12px;font-size:13px;}
+.login-error{color:var(--ladrillo);background:var(--ladrillo-tenue);border:1px solid var(--ladrillo);
+  border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;margin-bottom:16px;display:none;}
+.app-shell{display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar-w);background:var(--carbon-alto);border-right:1px solid var(--carbon-borde);flex-shrink:0;
+  display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;transition:transform .2s ease;z-index:40;}
+.sidebar-brand{padding:22px 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--carbon-borde);}
+.brand-stamp{width:34px;height:34px;border-radius:50%;border:2px solid var(--miel);color:var(--miel);display:flex;
+  align-items:center;justify-content:center;font-family:var(--f-display);font-size:15px;flex-shrink:0;transform:rotate(-4deg);}
+.sidebar-brand .name{font-family:var(--f-display);font-size:15px;line-height:1.2;}
+.sidebar-brand .name small{display:block;font-family:var(--f-body);font-size:11px;color:var(--harina-tenue);font-weight:400;margin-top:2px;}
+.nav{flex:1;overflow-y:auto;padding:14px 10px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);
+  color:var(--harina-tenue);font-size:13.5px;font-weight:500;cursor:pointer;margin-bottom:2px;user-select:none;border:1px solid transparent;}
+.nav-item:hover{background:rgba(217,160,91,.08);color:var(--harina);}
+.nav-item.active{background:var(--miel-tenue);color:var(--miel);border-color:rgba(217,160,91,.25);}
+.nav-icon{width:18px;text-align:center;flex-shrink:0;}
+.sidebar-foot{padding:14px 16px 18px;border-top:1px solid var(--carbon-borde);}
+.user-chip{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--miel-tenue);color:var(--miel);display:flex;
+  align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0;}
+.user-meta{line-height:1.25;overflow:hidden;}
+.user-meta .u-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-meta .u-role{font-size:11px;color:var(--harina-tenue);}
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0;padding:28px 32px 60px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;}
+.topbar h2{margin:0;font-size:24px;}
+.topbar .sub{color:var(--harina-tenue);font-size:13px;margin-top:4px;}
+.menu-toggle{display:none;background:var(--carbon-alto);border:1px solid var(--carbon-borde);color:var(--harina);
+  border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;}
+.grid{display:grid;gap:16px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:640px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}}
+.card{background:var(--carbon-alto);border:1px solid var(--carbon-borde);border-radius:var(--radius);padding:18px 20px;}
+.card h3{margin:0 0 14px;font-size:15px;}
+.stat{background:var(--carbon-alto);border:1px solid var(--carbon-borde);border-radius:var(--radius);padding:16px 18px;}
+.stat .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--harina-tenue);margin-bottom:8px;}
+.stat .value{font-family:var(--f-mono);font-size:22px;font-weight:600;}
+.stat .value.pos{color:var(--oliva);}
+.stat .value.neg{color:var(--ladrillo);}
+.stat .value.warn{color:var(--miel);}
+.stamp{display:inline-flex;align-items:center;gap:6px;padding:4px 12px 4px 10px;border-radius:999px;
+  font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;border:1.5px solid currentColor;transform:rotate(-1.5deg);}
+.stamp::before{content:'●';font-size:8px;}
+.stamp-ok{color:var(--oliva);background:var(--oliva-tenue);}
+.stamp-warn{color:var(--miel);background:var(--miel-tenue);}
+.stamp-bad{color:var(--ladrillo);background:var(--ladrillo-tenue);}
+.stamp-neutral{color:var(--harina-tenue);background:rgba(255,255,255,.04);}
+.table-wrap{background:var(--carbon-alto);border:1px solid var(--carbon-borde);border-radius:var(--radius);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+th{text-align:left;padding:12px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--harina-tenue);
+  border-bottom:1px solid var(--carbon-borde);white-space:nowrap;}
+td{padding:12px 16px;border-bottom:1px solid var(--carbon-borde);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:rgba(217,160,91,.04);}
+.num{font-family:var(--f-mono);}
+.row-actions{display:flex;gap:6px;}
+.icon-btn{background:transparent;border:1px solid var(--carbon-borde);color:var(--harina-tenue);border-radius:var(--radius-sm);
+  padding:5px 9px;cursor:pointer;font-size:12.5px;}
+.icon-btn:hover{color:var(--harina);border-color:var(--miel);}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.empty-state{text-align:center;padding:48px 20px;color:var(--harina-tenue);}
+.empty-state .es-icon{font-size:28px;margin-bottom:10px;}
+.empty-state p{font-size:13.5px;margin:4px 0 0;}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,7,5,.6);display:none;align-items:flex-start;justify-content:center;
+  padding:40px 20px;overflow-y:auto;z-index:100;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--carbon-alto);border:1px solid var(--carbon-borde);border-radius:var(--radius);width:100%;
+  max-width:520px;padding:26px 26px 22px;box-shadow:var(--shadow);}
+.modal h3{margin:0 0 18px;}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:480px){.form-row{grid-template-columns:1fr;}}
+.alert{border-radius:var(--radius-sm);padding:11px 14px;font-size:13px;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;}
+.alert-warn{background:var(--miel-tenue);border:1px solid var(--miel-fuerte);color:var(--miel);}
+.alert-bad{background:var(--ladrillo-tenue);border:1px solid var(--ladrillo);color:#e39a86;}
+.alert-ok{background:var(--oliva-tenue);border:1px solid var(--oliva);color:var(--oliva);}
+#toast{position:fixed;bottom:22px;right:22px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast-msg{background:var(--carbon-alto);border:1px solid var(--miel);color:var(--harina);padding:11px 16px;
+  border-radius:var(--radius-sm);font-size:13px;box-shadow:var(--shadow);animation:slideIn .18s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.filters select,.filters input{width:auto;min-width:140px;}
+.muted{color:var(--harina-tenue);}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--miel-tenue);color:var(--miel);
+  border:1px solid rgba(217,160,91,.3);}
+.hidden{display:none !important;}
+@media (max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;padding:20px 16px 60px;}
+  .menu-toggle{display:inline-flex;}
+}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-stamp">DH</div>
+    <h1>Panadería Del Horno</h1>
+    <p class="login-sub">Sistema de gestión — inicia sesión para continuar</p>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="field"><label for="email">Correo</label>
+        <input type="email" id="email" required autocomplete="username" placeholder="admin@delhorno.com"></div>
+      <div class="field"><label for="password">Contraseña</label>
+        <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••"></div>
+      <button type="submit" class="btn btn-block" id="login-btn">Iniciar sesión</button>
+    </form>
+  </div>
+</div>
+
+<div class="app-shell hidden" id="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-stamp">DH</div>
+      <div class="name">Del Horno<small>Panel de gestión</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item" data-view="dashboard"><span class="nav-icon">◆</span> Dashboard</div>
+      <div class="nav-item" data-view="jornada"><span class="nav-icon">☀</span> Jornada del día</div>
+      <div class="nav-item" data-view="rutas"><span class="nav-icon">➜</span> Rutas</div>
+      <div class="nav-item" data-view="productos"><span class="nav-icon">▤</span> Productos</div>
+      <div class="nav-item" data-view="inventario"><span class="nav-icon">▧</span> Inventario</div>
+      <div class="nav-item" data-view="ventas"><span class="nav-icon">L</span> Ventas</div>
+      <div class="nav-item" data-view="gastos"><span class="nav-icon">−</span> Gastos</div>
+      <div class="nav-item" data-view="vehiculo"><span class="nav-icon">◈</span> Vehículo</div>
+      <div class="nav-item" data-view="depositos"><span class="nav-icon">▣</span> Depósitos</div>
+      <div class="nav-item" data-view="reportes"><span class="nav-icon">▦</span> Reportes</div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar">–</div>
+        <div class="user-meta"><div class="u-name" id="user-name">—</div><div class="u-role">Administrador</div></div>
+      </div>
+      <button class="btn btn-ghost btn-block btn-sm" id="logout-btn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+        <div><h2 id="view-title">Dashboard</h2><div class="sub" id="view-sub"></div></div>
+      </div>
+    </div>
+    <div id="view-root"><div class="empty-state"><p>Cargando…</p></div></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, setPersistence, browserLocalPersistence,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  getDocs, getDoc, query, orderBy, where, serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+/* PEGA AQUÍ TU CONFIGURACIÓN REAL DE FIREBASE
+   (Firebase Console → ⚙️ Configuración → Tus apps → Web) */
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID",
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+async function listAll(col, orderField = null, dir = "desc") {
+  const ref = collection(db, col);
+  const q = orderField ? query(ref, orderBy(orderField, dir)) : ref;
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+async function listWhere(col, field, op, value, orderField = null, dir = "desc") {
+  const ref = collection(db, col);
+  const clauses = [where(field, op, value)];
+  const q = orderField ? query(ref, ...clauses, orderBy(orderField, dir)) : query(ref, ...clauses);
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+async function getOne(col, id) {
+  const snap = await getDoc(doc(db, col, id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+async function createDoc(col, data) {
+  const ref = await addDoc(collection(db, col), { ...data, creadoEn: serverTimestamp() });
+  return ref.id;
+}
+async function updateDocById(col, id, data) {
+  await updateDoc(doc(db, col, id), { ...data, actualizadoEn: serverTimestamp() });
+}
+async function deleteDocById(col, id) {
+  await deleteDoc(doc(db, col, id));
+}
+
+function fmtL(num){ const n = Number(num) || 0; return "L " + n.toLocaleString("es-HN",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(d){ if(!d) return "—"; const date = typeof d==="string" ? new Date(d+"T00:00:00") : d; return date.toLocaleDateString("es-HN",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function escapeHtml(str){ if(str==null) return ""; return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(msg){ const box=document.getElementById("toast"); const el=document.createElement("div"); el.className="toast-msg"; el.textContent=msg; box.appendChild(el); setTimeout(()=>el.remove(),3200); }
+function confirmDialog(msg){ return window.confirm(msg); }
+
+function openModal({ title, bodyHtml, onSubmit, submitLabel = "Guardar" }) {
+  const overlay = document.getElementById("modal-overlay");
+  overlay.innerHTML = `<div class="modal"><h3>${escapeHtml(title)}</h3><form id="modal-form">${bodyHtml}
+    <div class="modal-foot"><button type="button" class="btn btn-ghost" id="modal-cancel">Cancelar</button>
+    <button type="submit" class="btn">${escapeHtml(submitLabel)}</button></div></form></div>`;
+  overlay.classList.add("open");
+  overlay.querySelector("#modal-cancel").onclick = () => closeModal();
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  const form = overlay.querySelector("#modal-form");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    try { await onSubmit(fd, form); closeModal(); }
+    catch (err) { console.error(err); toast("Error: " + (err.message || "no se pudo guardar")); submitBtn.disabled = false; }
+  };
+  return overlay;
+}
+function closeModal(){ const overlay=document.getElementById("modal-overlay"); overlay.classList.remove("open"); overlay.innerHTML=""; }
+
+async function login(email, password){ await signInWithEmailAndPassword(auth, email, password); }
+async function logout(){ await signOut(auth); }
+
+const CATEGORIAS_BASE = ["Combustible","Mantenimiento","Reparación","Aceite","Llantas","Alimentación","Mano de obra","Otros"];
+const DIAS = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Sin asignar"];
+
+const Views = {
+
+  async dashboard(root){
+    const jornadas = await listAll("jornadas","fecha");
+    const hoy = jornadas.find(j=>j.fecha===todayISO()) || jornadas[0];
+    if(!hoy){ root.innerHTML = emptyState("◆","Todavía no hay jornadas registradas. Abre la primera en “Jornada del día”."); return; }
+    const [movs, ventas, gastos, depositos] = await Promise.all([
+      listWhere("inventarioMovimientos","jornadaId","==",hoy.id),
+      listWhere("ventas","jornadaId","==",hoy.id),
+      listWhere("gastos","jornadaId","==",hoy.id),
+      listWhere("depositos","jornadaId","==",hoy.id),
+    ]);
+    const cargado = sum(movs,"cargado"), vendido = sum(movs,"vendido"), devuelto = sum(movs,"devuelto");
+    const totalVentas = sum(ventas,"total"), totalGastos = sum(gastos,"monto"), resultado = totalVentas-totalGastos;
+    const deposito = depositos[0];
+    const estadoDep = !deposito || !deposito.depositado ? {t:"Pendiente",c:"stamp-bad"}
+      : Number(deposito.monto)===totalVentas ? {t:"Completo",c:"stamp-ok"} : {t:"Incompleto",c:"stamp-warn"};
+
+    root.innerHTML = `
+      ${hoy.fecha!==todayISO() ? `<div class="alert alert-warn">Mostrando la jornada más reciente registrada (${fmtDate(hoy.fecha)}) — hoy no se ha abierto ninguna.</div>` : ""}
+      <div class="card" style="margin-bottom:20px;">
+        <div class="section-head" style="margin-bottom:4px;">
+          <h3 style="margin:0;">${fmtDate(hoy.fecha)} · ${escapeHtml(hoy.diaSemana||"")}</h3>
+          <span class="stamp ${hoy.estadoCierre==="cerrada"?"stamp-ok":"stamp-warn"}">${hoy.estadoCierre==="cerrada"?"Cerrada":"Abierta"}</span>
+        </div>
+        <div class="muted" style="font-size:13.5px;">Ruta: <strong>${escapeHtml(hoy.rutaNombre||"—")}</strong> · Vehículo: <strong>${escapeHtml(hoy.vehiculoNombre||"—")}</strong></div>
+      </div>
+      <div class="grid grid-4" style="margin-bottom:18px;">
+        <div class="stat"><div class="label">Producto cargado</div><div class="value">${cargado}</div></div>
+        <div class="stat"><div class="label">Producto vendido</div><div class="value">${vendido}</div></div>
+        <div class="stat"><div class="label">Devoluciones</div><div class="value">${devuelto}</div></div>
+        <div class="stat"><div class="label">Estado depósito</div><div class="value"><span class="stamp ${estadoDep.c}">${estadoDep.t}</span></div></div>
+      </div>
+      <div class="grid grid-3">
+        <div class="stat"><div class="label">Ventas del día</div><div class="value pos">${fmtL(totalVentas)}</div></div>
+        <div class="stat"><div class="label">Gastos del día</div><div class="value neg">${fmtL(totalGastos)}</div></div>
+        <div class="stat"><div class="label">Resultado operativo</div><div class="value ${resultado>=0?"pos":"neg"}">${fmtL(resultado)}</div></div>
+      </div>`;
+  },
+
+  async rutas(root){
+    const rutas = await listAll("rutas");
+    rutas.sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""));
+    root.innerHTML = `
+      <div class="section-head"><span class="muted">${rutas.length} ruta(s) registrada(s)</span>
+        <button class="btn" id="btn-new">+ Nueva ruta</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Ruta</th><th>Día asignado</th><th>Estado</th><th>Observaciones</th><th></th></tr></thead>
+      <tbody id="tb"></tbody></table></div>`;
+    const body = root.querySelector("#tb");
+    body.innerHTML = rutas.length ? rutas.map(r=>`
+      <tr><td><strong>${escapeHtml(r.nombre)}</strong>${r.descripcion?`<div class="muted" style="font-size:12px">${escapeHtml(r.descripcion)}</div>`:""}</td>
+      <td>${escapeHtml(r.diaAsignado||"Sin asignar")}</td>
+      <td><span class="stamp ${r.estado==="activa"?"stamp-ok":"stamp-neutral"}">${r.estado==="activa"?"Activa":"Inactiva"}</span></td>
+      <td class="muted">${escapeHtml(r.observaciones||"—")}</td>
+      <td class="row-actions"><button class="icon-btn" data-edit="${r.id}">Editar</button><button class="icon-btn" data-del="${r.id}">Eliminar</button></td></tr>`).join("")
+      : `<tr><td colspan="5">${emptyState("➜","No hay rutas registradas todavía.")}</td></tr>`;
+
+    root.querySelector("#btn-new").onclick = ()=>form();
+    body.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>form(rutas.find(r=>r.id===b.dataset.edit)));
+    body.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+      if(!confirmDialog("¿Eliminar esta ruta?")) return;
+      await deleteDocById("rutas", b.dataset.del); toast("Ruta eliminada"); Views.rutas(root);
+    });
+    function form(existing){
+      openModal({ title: existing?"Editar ruta":"Nueva ruta", submitLabel: existing?"Guardar cambios":"Crear ruta",
+        bodyHtml: `
+          <div class="field"><label>Nombre de la ruta</label><input name="nombre" required value="${existing?escapeHtml(existing.nombre):""}" placeholder="Ruta 1"></div>
+          <div class="field"><label>Descripción</label><input name="descripcion" value="${existing?escapeHtml(existing.descripcion||""):""}" placeholder="Zona / colonias que cubre"></div>
+          <div class="form-row">
+            <div class="field"><label>Día asignado</label><select name="diaAsignado">${DIAS.map(d=>`<option ${existing?.diaAsignado===d?"selected":""}>${d}</option>`).join("")}</select></div>
+            <div class="field"><label>Estado</label><select name="estado">
+              <option value="activa" ${existing?.estado==="activa"?"selected":""}>Activa</option>
+              <option value="inactiva" ${existing?.estado==="inactiva"?"selected":""}>Inactiva</option></select></div>
+          </div>
+          <div class="field"><label>Observaciones</label><textarea name="observaciones" rows="2">${existing?escapeHtml(existing.observaciones||""):""}</textarea></div>`,
+        onSubmit: async(fd)=>{
+          const data = { nombre:fd.get("nombre").trim(), descripcion:fd.get("descripcion").trim(), diaAsignado:fd.get("diaAsignado"), estado:fd.get("estado"), observaciones:fd.get("observaciones").trim() };
+          if(existing) await updateDocById("rutas", existing.id, data); else await createDoc("rutas", data);
+          toast(existing?"Ruta actualizada":"Ruta creada"); Views.rutas(root);
+        }});
+    }
+  },
+
+  async productos(root){
+    const productos = await listAll("productos");
+    productos.sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""));
+    root.innerHTML = `
+      <div class="section-head"><span class="muted">${productos.length} producto(s) en catálogo</span>
+        <button class="btn" id="btn-new">+ Nuevo producto</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Unidad</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="tb"></tbody></table></div>`;
+    const body = root.querySelector("#tb");
+    body.innerHTML = productos.length ? productos.map(p=>`
+      <tr><td><strong>${escapeHtml(p.nombre)}</strong>${p.descripcion?`<div class="muted" style="font-size:12px">${escapeHtml(p.descripcion)}</div>`:""}</td>
+      <td>${escapeHtml(p.unidad||"—")}</td><td class="num">${fmtL(p.precio)}</td>
+      <td><span class="stamp ${p.activo?"stamp-ok":"stamp-neutral"}">${p.activo?"Activo":"Inactivo"}</span></td>
+      <td class="row-actions"><button class="icon-btn" data-edit="${p.id}">Editar</button><button class="icon-btn" data-del="${p.id}">Eliminar</button></td></tr>`).join("")
+      : `<tr><td colspan="5">${emptyState("▤","Todavía no hay productos en el catálogo.")}</td></tr>`;
+
+    root.querySelector("#btn-new").onclick = ()=>form();
+    body.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>form(productos.find(p=>p.id===b.dataset.edit)));
+    body.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+      if(!confirmDialog("¿Eliminar este producto?")) return;
+      await deleteDocById("productos", b.dataset.del); toast("Producto eliminado"); Views.productos(root);
+    });
+    function form(existing){
+      openModal({ title: existing?"Editar producto":"Nuevo producto", submitLabel: existing?"Guardar cambios":"Crear producto",
+        bodyHtml: `
+          <div class="field"><label>Nombre</label><input name="nombre" required value="${existing?escapeHtml(existing.nombre):""}" placeholder="Bolsa de pan dulce"></div>
+          <div class="field"><label>Descripción</label><input name="descripcion" value="${existing?escapeHtml(existing.descripcion||""):""}"></div>
+          <div class="form-row">
+            <div class="field"><label>Unidad de medida</label><input name="unidad" value="${existing?escapeHtml(existing.unidad||""):""}" placeholder="bolsa, unidad, docena…"></div>
+            <div class="field"><label>Precio de venta (L)</label><input name="precio" type="number" step="0.01" min="0" required value="${existing?existing.precio:""}"></div>
+          </div>
+          <div class="field"><label><input type="checkbox" name="activo" ${!existing||existing.activo?"checked":""} style="width:auto;margin-right:6px;">Producto activo</label></div>`,
+        onSubmit: async(fd)=>{
+          const data = { nombre:fd.get("nombre").trim(), descripcion:fd.get("descripcion").trim(), unidad:fd.get("unidad").trim(), precio:parseFloat(fd.get("precio"))||0, activo:fd.get("activo")==="on" };
+          if(existing) await updateDocById("productos", existing.id, data); else await createDoc("productos", data);
+          toast(existing?"Producto actualizado":"Producto creado"); Views.productos(root);
+        }});
+    }
+  },
+
+  async jornada(root){
+    const [jornadas, rutas, vehiculos] = await Promise.all([listAll("jornadas","fecha"), listAll("rutas"), listAll("vehiculos")]);
+    root.innerHTML = `
+      <div class="section-head"><span class="muted">${jornadas.length} jornada(s) registradas</span>
+        <button class="btn" id="btn-new-jornada">+ Abrir jornada</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Ruta</th><th>Km recorridos</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="tb"></tbody></table></div>
+      <div id="detail" style="margin-top:24px;"></div>`;
+    const body = root.querySelector("#tb");
+    body.innerHTML = jornadas.length ? jornadas.map(j=>`
+      <tr><td>${fmtDate(j.fecha)} <span class="muted" style="font-size:12px">${escapeHtml(j.diaSemana||"")}</span></td>
+      <td>${escapeHtml(j.rutaNombre||"—")}</td><td class="num">${j.kmFinal&&j.kmInicial?(j.kmFinal-j.kmInicial):"—"}</td>
+      <td><span class="stamp ${j.estadoCierre==="cerrada"?"stamp-ok":"stamp-warn"}">${j.estadoCierre==="cerrada"?"Cerrada":"Abierta"}</span></td>
+      <td><button class="icon-btn" data-open="${j.id}">Ver / gestionar</button></td></tr>`).join("")
+      : `<tr><td colspan="5">${emptyState("☀","No hay jornadas registradas todavía.")}</td></tr>`;
+    body.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
+    root.querySelector("#btn-new-jornada").onclick = ()=>newForm();
+    if(jornadas.length) openDetail(jornadas[0].id);
+
+    function newForm(){
+      if(!rutas.length) return toast("Primero registra al menos una ruta.");
+      if(!vehiculos.length) return toast("Primero registra el vehículo en el módulo Vehículo.");
+      openModal({ title:"Abrir nueva jornada", submitLabel:"Abrir jornada", bodyHtml:`
+        <div class="form-row">
+          <div class="field"><label>Fecha</label><input type="date" name="fecha" value="${todayISO()}" required></div>
+          <div class="field"><label>Ruta</label><select name="rutaId" required>${rutas.map(r=>`<option value="${r.id}">${escapeHtml(r.nombre)}</option>`).join("")}</select></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Vehículo</label><select name="vehiculoId" required>${vehiculos.map(v=>`<option value="${v.id}">${escapeHtml(v.nombre)}</option>`).join("")}</select></div>
+          <div class="field"><label>Kilometraje inicial</label><input type="number" name="kmInicial" required min="0"></div>
+        </div>`,
+        onSubmit: async(fd)=>{
+          const fecha = fd.get("fecha");
+          const ruta = rutas.find(r=>r.id===fd.get("rutaId"));
+          const vehiculo = vehiculos.find(v=>v.id===fd.get("vehiculoId"));
+          await createDoc("jornadas", { fecha, diaSemana:new Date(fecha+"T00:00:00").toLocaleDateString("es-HN",{weekday:"long"}),
+            rutaId:ruta.id, rutaNombre:ruta.nombre, vehiculoId:vehiculo.id, vehiculoNombre:vehiculo.nombre,
+            kmInicial:parseFloat(fd.get("kmInicial"))||0, kmFinal:null, estadoCierre:"abierta" });
+          toast("Jornada abierta"); Views.jornada(root);
+        }});
+    }
+
+    async function openDetail(jornadaId){
+      const det = root.querySelector("#detail");
+      det.innerHTML = `<div class="empty-state"><p>Cargando jornada…</p></div>`;
+      const [jornada, movs, ventas, gastos, depositos] = await Promise.all([
+        getOne("jornadas", jornadaId),
+        listWhere("inventarioMovimientos","jornadaId","==",jornadaId),
+        listWhere("ventas","jornadaId","==",jornadaId),
+        listWhere("gastos","jornadaId","==",jornadaId),
+        listWhere("depositos","jornadaId","==",jornadaId),
+      ]);
+      if(!jornada){ det.innerHTML=""; return; }
+      const cargado=sum(movs,"cargado"), vendidoInv=sum(movs,"vendido"), devuelto=sum(movs,"devuelto");
+      const diferencia = cargado - vendidoInv - devuelto;
+      const totalVentas=sum(ventas,"total"), totalGastos=sum(gastos,"monto"), resultado=totalVentas-totalGastos;
+      const deposito = depositos[0];
+      const kmRecorridos = jornada.kmFinal!=null ? jornada.kmFinal-jornada.kmInicial : null;
+
+      det.innerHTML = `
+        <div class="card" style="margin-bottom:16px;">
+          <div class="section-head" style="margin-bottom:6px;">
+            <h3 style="margin:0;">Cierre diario — ${fmtDate(jornada.fecha)} · ${escapeHtml(jornada.rutaNombre)}</h3>
+            <span class="stamp ${jornada.estadoCierre==="cerrada"?"stamp-ok":"stamp-warn"}">${jornada.estadoCierre==="cerrada"?"Cerrada":"Abierta"}</span>
+          </div>
+          ${diferencia!==0?`<div class="alert alert-warn">⚠️ Diferencia de inventario: <strong>&nbsp;${Math.abs(diferencia)} unidades</strong></div>`:""}
+          <div class="grid grid-4" style="margin-bottom:18px;">
+            <div class="stat"><div class="label">Cargado</div><div class="value">${cargado}</div></div>
+            <div class="stat"><div class="label">Vendido (inv.)</div><div class="value">${vendidoInv}</div></div>
+            <div class="stat"><div class="label">Devuelto</div><div class="value">${devuelto}</div></div>
+            <div class="stat"><div class="label">Diferencia</div><div class="value ${diferencia===0?"pos":"warn"}">${diferencia}</div></div>
+          </div>
+          <div class="grid grid-4" style="margin-bottom:18px;">
+            <div class="stat"><div class="label">Ventas totales</div><div class="value pos">${fmtL(totalVentas)}</div></div>
+            <div class="stat"><div class="label">Gastos</div><div class="value neg">${fmtL(totalGastos)}</div></div>
+            <div class="stat"><div class="label">Resultado operativo</div><div class="value ${resultado>=0?"pos":"neg"}">${fmtL(resultado)}</div></div>
+            <div class="stat"><div class="label">Km recorridos</div><div class="value">${kmRecorridos??"—"}</div></div>
+          </div>
+          <div class="grid grid-2">
+            <div class="stat"><div class="label">Vehículo</div>
+              <div style="font-size:13.5px;margin-top:4px;">Km inicial: <strong class="mono">${jornada.kmInicial}</strong><br>Km final: <strong class="mono">${jornada.kmFinal??"Pendiente"}</strong></div>
+              ${jornada.kmFinal==null?`<button class="btn btn-sm" style="margin-top:10px;" id="btn-km-final">Registrar km final</button>`:""}
+            </div>
+            <div class="stat"><div class="label">Depósito bancario</div>
+              <div style="font-size:13.5px;margin-top:4px;">
+                ${deposito ? (deposito.depositado ? `Depositado: <strong>${fmtL(deposito.monto)}</strong> · ${escapeHtml(deposito.banco||"")}<br>Ref: ${escapeHtml(deposito.referencia||"—")}` : `<span class="stamp stamp-bad">Pendiente</span> ${escapeHtml(deposito.motivo||"")}`) : `<span class="muted">Sin registrar — ve al módulo Depósitos</span>`}
+              </div>
+            </div>
+          </div>
+          ${jornada.estadoCierre!=="cerrada"?`<button class="btn" style="margin-top:18px;" id="btn-cerrar">Cerrar jornada</button>`:""}
+        </div>`;
+
+      const kmBtn = det.querySelector("#btn-km-final");
+      if(kmBtn) kmBtn.onclick = ()=>openModal({ title:"Registrar kilometraje final",
+        bodyHtml:`<div class="field"><label>Kilometraje final</label><input type="number" name="kmFinal" min="${jornada.kmInicial}" required></div>`,
+        onSubmit: async(fd)=>{ await updateDocById("jornadas", jornada.id, { kmFinal: parseFloat(fd.get("kmFinal")) }); toast("Kilometraje final registrado"); openDetail(jornada.id); }});
+
+      const cerrarBtn = det.querySelector("#btn-cerrar");
+      if(cerrarBtn) cerrarBtn.onclick = async ()=>{
+        if(jornada.kmFinal==null) return toast("Registra el kilometraje final antes de cerrar.");
+        if(!deposito) return toast("Registra el depósito bancario (o márcalo pendiente) antes de cerrar.");
+        if(!confirmDialog("¿Cerrar esta jornada? Ya no podrás editar sus registros.")) return;
+        await updateDocById("jornadas", jornada.id, { estadoCierre:"cerrada" }); toast("Jornada cerrada"); Views.jornada(root);
+      };
+    }
+  },
+
+  async inventario(root){
+    const [jornadas, productos] = await Promise.all([listAll("jornadas","fecha"), listAll("productos")]);
+    root.innerHTML = `<div class="filters">
+        <select id="sel-jornada">${jornadas.length?jornadas.map(j=>`<option value="${j.id}">${fmtDate(j.fecha)} — ${escapeHtml(j.rutaNombre||"")}</option>`).join(""):`<option value="">Sin jornadas</option>`}</select>
+        <button class="btn" id="btn-add">+ Registrar producto</button></div><div id="inv-body"></div>`;
+    if(!jornadas.length){ root.querySelector("#inv-body").innerHTML = emptyState("▧",'Primero abre una jornada en "Jornada del día".'); return; }
+    const sel = root.querySelector("#sel-jornada");
+    sel.onchange = ()=>loadFor(sel.value);
+    loadFor(sel.value);
+    root.querySelector("#btn-add").onclick = ()=>form(sel.value);
+
+    async function loadFor(jornadaId){
+      const box = root.querySelector("#inv-body");
+      box.innerHTML = `<div class="empty-state"><p>Cargando…</p></div>`;
+      const movs = await listWhere("inventarioMovimientos","jornadaId","==",jornadaId);
+      const totC=sum(movs,"cargado"), totV=sum(movs,"vendido"), totD=sum(movs,"devuelto"), diff=totC-totV-totD;
+      box.innerHTML = `
+        ${diff!==0?`<div class="alert alert-warn">⚠️ Diferencia de inventario: <strong>&nbsp;${Math.abs(diff)} unidades</strong></div>`:`<div class="alert alert-ok">✅ El inventario cuadra (cargado = vendido + devuelto)</div>`}
+        <div class="grid grid-4" style="margin-bottom:18px;">
+          <div class="stat"><div class="label">Cargado</div><div class="value">${totC}</div></div>
+          <div class="stat"><div class="label">Vendido</div><div class="value">${totV}</div></div>
+          <div class="stat"><div class="label">Devuelto</div><div class="value">${totD}</div></div>
+          <div class="stat"><div class="label">Diferencia</div><div class="value ${diff===0?"pos":"warn"}">${diff}</div></div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Cargado</th><th>Vendido</th><th>Devuelto</th><th>Diferencia</th><th></th></tr></thead>
+        <tbody id="mv-body"></tbody></table></div>`;
+      const body = box.querySelector("#mv-body");
+      body.innerHTML = movs.length ? movs.map(m=>{ const d=(+m.cargado||0)-(+m.vendido||0)-(+m.devuelto||0);
+        return `<tr><td>${escapeHtml(m.productoNombre)}</td><td class="num">${m.cargado??0}</td><td class="num">${m.vendido??0}</td><td class="num">${m.devuelto??0}</td><td class="num">${d}</td>
+        <td class="row-actions"><button class="icon-btn" data-edit="${m.id}">Editar</button><button class="icon-btn" data-del="${m.id}">Eliminar</button></td></tr>`; }).join("")
+        : `<tr><td colspan="6">${emptyState("","Sin movimientos de inventario para esta jornada.")}</td></tr>`;
+      body.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>form(jornadaId, movs.find(m=>m.id===b.dataset.edit)));
+      body.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+        if(!confirmDialog("¿Eliminar este movimiento?")) return;
+        await deleteDocById("inventarioMovimientos", b.dataset.del); toast("Movimiento eliminado"); loadFor(jornadaId);
+      });
+    }
+    function form(jornadaId, existing){
+      if(!productos.length) return toast("Primero registra productos en el catálogo.");
+      openModal({ title: existing?"Editar movimiento de inventario":"Registrar producto en la jornada", submitLabel: existing?"Guardar cambios":"Registrar",
+        bodyHtml: `
+          <div class="field"><label>Producto</label><select name="productoId" ${existing?"disabled":""} required>
+            ${productos.map(p=>`<option value="${p.id}" ${existing?.productoId===p.id?"selected":""}>${escapeHtml(p.nombre)}</option>`).join("")}</select></div>
+          <div class="form-row">
+            <div class="field"><label>Cargado</label><input type="number" name="cargado" min="0" value="${existing?existing.cargado:0}" required></div>
+            <div class="field"><label>Vendido</label><input type="number" name="vendido" min="0" value="${existing?existing.vendido:0}" required></div>
+          </div>
+          <div class="field"><label>Devuelto</label><input type="number" name="devuelto" min="0" value="${existing?existing.devuelto:0}" required></div>`,
+        onSubmit: async(fd)=>{
+          const producto = productos.find(p=>p.id===(existing?.productoId||fd.get("productoId")));
+          const data = { jornadaId, productoId:producto.id, productoNombre:producto.nombre, cargado:parseFloat(fd.get("cargado"))||0, vendido:parseFloat(fd.get("vendido"))||0, devuelto:parseFloat(fd.get("devuelto"))||0 };
+          if(existing) await updateDocById("inventarioMovimientos", existing.id, data); else await createDoc("inventarioMovimientos", data);
+          toast("Guardado"); loadFor(jornadaId);
+        }});
+    }
+  },
+
+  async ventas(root){
+    const [jornadas, productos] = await Promise.all([listAll("jornadas","fecha"), listAll("productos")]);
+    root.innerHTML = `<div class="filters">
+        <select id="sel-jornada">${jornadas.length?jornadas.map(j=>`<option value="${j.id}">${fmtDate(j.fecha)} — ${escapeHtml(j.rutaNombre||"")}</option>`).join(""):`<option value="">Sin jornadas</option>`}</select>
+        <button class="btn" id="btn-add">+ Nueva venta</button></div><div id="v-body"></div>`;
+    if(!jornadas.length){ root.querySelector("#v-body").innerHTML = emptyState("L",'Primero abre una jornada en "Jornada del día".'); return; }
+    const sel = root.querySelector("#sel-jornada");
+    sel.onchange = ()=>load(sel.value);
+    load(sel.value);
+    root.querySelector("#btn-add").onclick = ()=>form(sel.value);
+
+    async function load(jornadaId){
+      const jornada = jornadas.find(j=>j.id===jornadaId);
+      const box = root.querySelector("#v-body");
+      const ventas = await listWhere("ventas","jornadaId","==",jornadaId);
+      const total = sum(ventas,"total");
+      box.innerHTML = `
+        <div class="stat" style="max-width:260px;margin-bottom:18px;"><div class="label">Ventas del día — ${escapeHtml(jornada?.rutaNombre||"")}</div><div class="value pos">${fmtL(total)}</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Cantidad</th><th>P. unitario</th><th>Total</th><th>Observación</th><th></th></tr></thead>
+        <tbody id="v-rows"></tbody></table></div>`;
+      const rows = box.querySelector("#v-rows");
+      rows.innerHTML = ventas.length ? ventas.map(v=>`
+        <tr><td>${escapeHtml(v.productoNombre)}</td><td class="num">${v.cantidad}</td><td class="num">${fmtL(v.precioUnitario)}</td>
+        <td class="num"><strong>${fmtL(v.total)}</strong></td><td class="muted">${escapeHtml(v.observacion||"—")}</td>
+        <td class="row-actions"><button class="icon-btn" data-edit="${v.id}">Editar</button><button class="icon-btn" data-del="${v.id}">Eliminar</button></td></tr>`).join("")
+        : `<tr><td colspan="6">${emptyState("","Sin ventas registradas para esta jornada.")}</td></tr>`;
+      rows.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>form(jornadaId, ventas.find(v=>v.id===b.dataset.edit)));
+      rows.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+        if(!confirmDialog("¿Eliminar esta venta?")) return;
+        await deleteDocById("ventas", b.dataset.del); toast("Venta eliminada"); load(jornadaId);
+      });
+    }
+    function form(jornadaId, existing){
+      if(!productos.length) return toast("Primero registra productos en el catálogo.");
+      const jornada = jornadas.find(j=>j.id===jornadaId);
+      const overlay = openModal({ title: existing?"Editar venta":"Registrar venta", submitLabel: existing?"Guardar cambios":"Registrar venta",
+        bodyHtml: `
+          <div class="field"><label>Producto</label><select name="productoId" required>
+            ${productos.map(p=>`<option value="${p.id}" data-precio="${p.precio}" ${existing?.productoId===p.id?"selected":""}>${escapeHtml(p.nombre)}</option>`).join("")}</select></div>
+          <div class="form-row">
+            <div class="field"><label>Cantidad</label><input type="number" name="cantidad" min="1" step="1" value="${existing?existing.cantidad:1}" required></div>
+            <div class="field"><label>Precio unitario (L)</label><input type="number" name="precioUnitario" min="0" step="0.01" value="${existing?existing.precioUnitario:(productos[0]?.precio||0)}" required></div>
+          </div>
+          <div class="field"><label>Observación</label><input name="observacion" value="${existing?escapeHtml(existing.observacion||""):""}"></div>`,
+        onSubmit: async(fd)=>{
+          const producto = productos.find(p=>p.id===fd.get("productoId"));
+          const cantidad = parseFloat(fd.get("cantidad"))||0, precioUnitario = parseFloat(fd.get("precioUnitario"))||0;
+          const data = { jornadaId, fecha:jornada.fecha, rutaId:jornada.rutaId, rutaNombre:jornada.rutaNombre, productoId:producto.id, productoNombre:producto.nombre,
+            cantidad, precioUnitario, total:cantidad*precioUnitario, observacion:fd.get("observacion").trim() };
+          if(existing) await updateDocById("ventas", existing.id, data); else await createDoc("ventas", data);
+          toast("Venta guardada"); load(jornadaId);
+        }});
+      const selProd = overlay.querySelector('select[name="productoId"]');
+      const precioInput = overlay.querySelector('input[name="precioUnitario"]');
+      selProd.addEventListener("change", ()=>{ const opt=selProd.selectedOptions[0]; if(opt && !existing) precioInput.value = opt.dataset.precio; });
+    }
+  },
+
+  async gastos(root){
+    const [jornadas, cats] = await Promise.all([listAll("jornadas","fecha"), listAll("categoriasGasto")]);
+    const categorias = cats.length ? cats.map(c=>c.nombre) : CATEGORIAS_BASE;
+    root.innerHTML = `<div class="filters">
+        <select id="sel-jornada">${jornadas.length?jornadas.map(j=>`<option value="${j.id}">${fmtDate(j.fecha)} — ${escapeHtml(j.rutaNombre||"")}</option>`).join(""):`<option value="">Sin jornadas</option>`}</select>
+        <button class="btn" id="btn-add">+ Nuevo gasto</button> <button class="btn btn-ghost" id="btn-cat">+ Categoría</button></div><div id="g-body"></div>`;
+    if(!jornadas.length){ root.querySelector("#g-body").innerHTML = emptyState("−",'Primero abre una jornada en "Jornada del día".'); return; }
+    const sel = root.querySelector("#sel-jornada");
+    sel.onchange = ()=>load(sel.value);
+    load(sel.value);
+    root.querySelector("#btn-add").onclick = ()=>form(sel.value);
+    root.querySelector("#btn-cat").onclick = ()=>openModal({ title:"Nueva categoría de gasto", bodyHtml:`<div class="field"><label>Nombre de la categoría</label><input name="nombre" required></div>`,
+      onSubmit: async(fd)=>{ await createDoc("categoriasGasto", { nombre: fd.get("nombre").trim() }); toast("Categoría creada"); Views.gastos(root); }});
+
+    async function load(jornadaId){
+      const box = root.querySelector("#g-body");
+      const jornada = jornadas.find(j=>j.id===jornadaId);
+      const gastos = await listWhere("gastos","jornadaId","==",jornadaId);
+      const total = sum(gastos,"monto");
+      box.innerHTML = `
+        <div class="stat" style="max-width:260px;margin-bottom:18px;"><div class="label">Gastos del día — ${escapeHtml(jornada?.rutaNombre||"")}</div><div class="value neg">${fmtL(total)}</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Responsable</th><th></th></tr></thead>
+        <tbody id="g-rows"></tbody></table></div>`;
+      const rows = box.querySelector("#g-rows");
+      rows.innerHTML = gastos.length ? gastos.map(g=>`
+        <tr><td><span class="tag">${escapeHtml(g.categoria)}</span></td><td>${escapeHtml(g.descripcion||"—")}</td><td class="num">${fmtL(g.monto)}</td><td class="muted">${escapeHtml(g.responsable||"—")}</td>
+        <td class="row-actions"><button class="icon-btn" data-edit="${g.id}">Editar</button><button class="icon-btn" data-del="${g.id}">Eliminar</button></td></tr>`).join("")
+        : `<tr><td colspan="5">${emptyState("","Sin gastos registrados para esta jornada.")}</td></tr>`;
+      rows.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>form(jornadaId, gastos.find(g=>g.id===b.dataset.edit)));
+      rows.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+        if(!confirmDialog("¿Eliminar este gasto?")) return;
+        await deleteDocById("gastos", b.dataset.del); toast("Gasto eliminado"); load(jornadaId);
+      });
+    }
+    function form(jornadaId, existing){
+      const jornada = jornadas.find(j=>j.id===jornadaId);
+      openModal({ title: existing?"Editar gasto":"Nuevo gasto", submitLabel: existing?"Guardar cambios":"Registrar gasto",
+        bodyHtml: `
+          <div class="form-row">
+            <div class="field"><label>Categoría</label><select name="categoria">${categorias.map(c=>`<option ${existing?.categoria===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div>
+            <div class="field"><label>Monto (L)</label><input type="number" name="monto" min="0" step="0.01" value="${existing?existing.monto:""}" required></div>
+          </div>
+          <div class="field"><label>Descripción</label><input name="descripcion" value="${existing?escapeHtml(existing.descripcion||""):""}"></div>
+          <div class="field"><label>Responsable</label><input name="responsable" value="${existing?escapeHtml(existing.responsable||""):""}"></div>
+          <div class="field"><label>Observación</label><textarea name="observacion" rows="2">${existing?escapeHtml(existing.observacion||""):""}</textarea></div>`,
+        onSubmit: async(fd)=>{
+          const data = { jornadaId, fecha:jornada.fecha, categoria:fd.get("categoria"), descripcion:fd.get("descripcion").trim(), monto:parseFloat(fd.get("monto"))||0, responsable:fd.get("responsable").trim(), observacion:fd.get("observacion").trim() };
+          if(existing) await updateDocById("gastos", existing.id, data); else await createDoc("gastos", data);
+          toast("Gasto guardado"); load(jornadaId);
+        }});
+    }
+  },
+
+  async vehiculo(root){
+    const vehiculos = await listAll("vehiculos");
+    root.innerHTML = `<div class="section-head"><span class="muted">${vehiculos.length?"1 vehículo registrado":"Sin vehículo registrado"}</span>
+      ${vehiculos.length===0?`<button class="btn" id="btn-new-veh">+ Registrar vehículo</button>`:""}</div><div id="veh-root"></div>`;
+    if(!vehiculos.length){ root.querySelector("#veh-root").innerHTML = emptyState("◈","Registra los datos del vehículo para empezar a llevar su control.");
+      root.querySelector("#btn-new-veh").onclick=()=>vehForm(); return; }
+    const v = vehiculos[0];
+    const [combustible, mantenimientos] = await Promise.all([
+      listWhere("combustible","vehiculoId","==",v.id), listWhere("mantenimientos","vehiculoId","==",v.id)]);
+    combustible.sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
+    mantenimientos.sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
+    const proximo = mantenimientos.find(m=>m.proximoMantenimiento && v.kilometrajeActual >= (Number(m.proximoMantenimiento)-300));
+
+    root.querySelector("#veh-root").innerHTML = `
+      <div class="card" style="margin-bottom:20px;">
+        <div class="section-head" style="margin-bottom:6px;"><h3 style="margin:0;">${escapeHtml(v.nombre)} — ${escapeHtml(v.placa||"sin placa")}</h3>
+          <button class="icon-btn" id="btn-edit-veh">Editar datos</button></div>
+        ${proximo?`<div class="alert alert-warn">⚠️ Mantenimiento próximo: <strong>&nbsp;${escapeHtml(proximo.tipo)}</strong> alrededor de ${proximo.proximoMantenimiento} km (actual: ${v.kilometrajeActual} km)</div>`:""}
+        <div class="grid grid-4">
+          <div class="stat"><div class="label">Marca / modelo</div><div class="value" style="font-size:15px;">${escapeHtml(v.marca||"—")} ${escapeHtml(v.modelo||"")}</div></div>
+          <div class="stat"><div class="label">Año</div><div class="value" style="font-size:15px;">${escapeHtml(v.anio||"—")}</div></div>
+          <div class="stat"><div class="label">Estado</div><div class="value" style="font-size:15px;">${escapeHtml(v.estado||"—")}</div></div>
+          <div class="stat"><div class="label">Kilometraje actual</div><div class="value">${v.kilometrajeActual??"—"}</div></div>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div><div class="section-head"><h3 style="margin:0;font-size:15px;">Combustible</h3><button class="icon-btn" id="btn-add-comb">+ Registrar</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Km</th><th>Cant.</th><th>Total</th><th></th></tr></thead><tbody>
+            ${combustible.length?combustible.map(c=>`<tr><td>${fmtDate(c.fecha)}</td><td class="num">${c.kilometraje}</td><td class="num">${c.cantidad}</td><td class="num">${fmtL(c.total)}</td>
+              <td class="row-actions"><button class="icon-btn" data-delc="${c.id}">Eliminar</button></td></tr>`).join(""):`<tr><td colspan="5">${emptyState("","Sin registros de combustible.")}</td></tr>`}
+          </tbody></table></div></div>
+        <div><div class="section-head"><h3 style="margin:0;font-size:15px;">Mantenimiento</h3><button class="icon-btn" id="btn-add-mant">+ Registrar</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Costo</th><th>Próx. (km)</th><th></th></tr></thead><tbody>
+            ${mantenimientos.length?mantenimientos.map(m=>`<tr><td>${fmtDate(m.fecha)}</td><td>${escapeHtml(m.tipo)}</td><td class="num">${fmtL(m.costo)}</td><td class="num">${m.proximoMantenimiento??"—"}</td>
+              <td class="row-actions"><button class="icon-btn" data-delm="${m.id}">Eliminar</button></td></tr>`).join(""):`<tr><td colspan="5">${emptyState("","Sin registros de mantenimiento.")}</td></tr>`}
+          </tbody></table></div></div>
+      </div>`;
+
+    root.querySelector("#btn-edit-veh").onclick = ()=>vehForm(v);
+    root.querySelector("#btn-add-comb").onclick = ()=>combForm(v);
+    root.querySelector("#btn-add-mant").onclick = ()=>mantForm(v);
+    root.querySelectorAll("[data-delc]").forEach(b=>b.onclick=async()=>{ if(!confirmDialog("¿Eliminar este registro de combustible?"))return; await deleteDocById("combustible", b.dataset.delc); toast("Eliminado"); Views.vehiculo(root); });
+    root.querySelectorAll("[data-delm]").forEach(b=>b.onclick=async()=>{ if(!confirmDialog("¿Eliminar este registro de mantenimiento?"))return; await deleteDocById("mantenimientos", b.dataset.delm); toast("Eliminado"); Views.vehiculo(root); });
+
+    function vehForm(existing){
+      openModal({ title: existing?"Editar vehículo":"Registrar vehículo", submitLabel:"Guardar", bodyHtml:`
+        <div class="form-row"><div class="field"><label>Nombre / identificador</label><input name="nombre" required value="${existing?escapeHtml(existing.nombre):""}" placeholder="Camión repartidor"></div>
+          <div class="field"><label>Placa</label><input name="placa" value="${existing?escapeHtml(existing.placa||""):""}"></div></div>
+        <div class="form-row"><div class="field"><label>Marca</label><input name="marca" value="${existing?escapeHtml(existing.marca||""):""}"></div>
+          <div class="field"><label>Modelo</label><input name="modelo" value="${existing?escapeHtml(existing.modelo||""):""}"></div></div>
+        <div class="form-row"><div class="field"><label>Año</label><input name="anio" value="${existing?escapeHtml(existing.anio||""):""}"></div>
+          <div class="field"><label>Estado</label><input name="estado" value="${existing?escapeHtml(existing.estado||""):"Operativo"}"></div></div>
+        <div class="field"><label>Kilometraje actual</label><input type="number" name="kilometrajeActual" min="0" required value="${existing?existing.kilometrajeActual:0}"></div>`,
+        onSubmit: async(fd)=>{
+          const data = { nombre:fd.get("nombre").trim(), placa:fd.get("placa").trim(), marca:fd.get("marca").trim(), modelo:fd.get("modelo").trim(), anio:fd.get("anio").trim(), estado:fd.get("estado").trim(), kilometrajeActual:parseFloat(fd.get("kilometrajeActual"))||0 };
+          if(existing) await updateDocById("vehiculos", existing.id, data); else await createDoc("vehiculos", data);
+          toast("Vehículo guardado"); Views.vehiculo(root);
+        }});
+    }
+    function combForm(v){
+      openModal({ title:"Registrar combustible", bodyHtml:`
+        <div class="form-row"><div class="field"><label>Fecha</label><input type="date" name="fecha" required></div>
+          <div class="field"><label>Kilometraje</label><input type="number" name="kilometraje" min="0" required value="${v.kilometrajeActual||0}"></div></div>
+        <div class="form-row"><div class="field"><label>Cantidad (gal)</label><input type="number" step="0.01" name="cantidad" required></div>
+          <div class="field"><label>Precio por galón (L)</label><input type="number" step="0.01" name="precio" required></div></div>
+        <div class="field"><label>Observación</label><input name="observacion"></div>`,
+        onSubmit: async(fd)=>{
+          const cantidad=parseFloat(fd.get("cantidad"))||0, precio=parseFloat(fd.get("precio"))||0;
+          await createDoc("combustible", { vehiculoId:v.id, fecha:fd.get("fecha"), kilometraje:parseFloat(fd.get("kilometraje"))||0, cantidad, precio, total:cantidad*precio, observacion:fd.get("observacion").trim() });
+          toast("Combustible registrado"); Views.vehiculo(root);
+        }});
+    }
+    function mantForm(v){
+      openModal({ title:"Registrar mantenimiento", bodyHtml:`
+        <div class="form-row"><div class="field"><label>Fecha</label><input type="date" name="fecha" required></div>
+          <div class="field"><label>Tipo</label><input name="tipo" placeholder="Cambio de aceite, frenos…" required></div></div>
+        <div class="form-row"><div class="field"><label>Kilometraje</label><input type="number" name="kilometraje" min="0" value="${v.kilometrajeActual||0}" required></div>
+          <div class="field"><label>Costo (L)</label><input type="number" step="0.01" name="costo" required></div></div>
+        <div class="field"><label>Descripción</label><textarea name="descripcion" rows="2"></textarea></div>
+        <div class="field"><label>Próximo mantenimiento (km)</label><input type="number" name="proximoMantenimiento" min="0"></div>`,
+        onSubmit: async(fd)=>{
+          await createDoc("mantenimientos", { vehiculoId:v.id, fecha:fd.get("fecha"), tipo:fd.get("tipo").trim(), kilometraje:parseFloat(fd.get("kilometraje"))||0,
+            descripcion:fd.get("descripcion").trim(), costo:parseFloat(fd.get("costo"))||0, proximoMantenimiento: fd.get("proximoMantenimiento")?parseFloat(fd.get("proximoMantenimiento")):null });
+          toast("Mantenimiento registrado"); Views.vehiculo(root);
+        }});
+    }
+  },
+
+  async depositos(root){
+    const jornadas = await listAll("jornadas","fecha");
+    root.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Ruta</th><th>Ventas</th><th>Depositado</th><th>Banco</th><th>Referencia</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="dep-body"><tr><td colspan="8"><div class="empty-state"><p>Cargando…</p></div></td></tr></tbody></table></div>`;
+    const body = root.querySelector("#dep-body");
+    if(!jornadas.length){ body.innerHTML = `<tr><td colspan="8">${emptyState("▣","No hay jornadas registradas todavía.")}</td></tr>`; return; }
+
+    const rowsData = await Promise.all(jornadas.map(async j=>{
+      const [ventas, depositosArr] = await Promise.all([listWhere("ventas","jornadaId","==",j.id), listWhere("depositos","jornadaId","==",j.id)]);
+      return { jornada:j, totalVentas: sum(ventas,"total"), deposito: depositosArr[0]||null };
+    }));
+
+    body.innerHTML = rowsData.map(({jornada, totalVentas, deposito})=>{
+      const est = estadoDeposito(totalVentas, deposito);
+      return `<tr><td>${fmtDate(jornada.fecha)}</td><td>${escapeHtml(jornada.rutaNombre||"—")}</td><td class="num">${fmtL(totalVentas)}</td>
+        <td class="num">${deposito&&deposito.depositado?fmtL(deposito.monto):"—"}</td><td>${escapeHtml(deposito?.banco||"—")}</td>
+        <td class="mono">${escapeHtml(deposito?.referencia||"—")}</td><td><span class="stamp ${est.cls}">${est.label}</span></td>
+        <td><button class="icon-btn" data-reg="${jornada.id}">${deposito?"Editar":"Registrar"}</button></td></tr>`;
+    }).join("");
+
+    body.querySelectorAll("[data-reg]").forEach(b=>{ b.onclick=()=>{ const row=rowsData.find(r=>r.jornada.id===b.dataset.reg); form(row.jornada, row.totalVentas, row.deposito); }; });
+
+    function estadoDeposito(ventas, deposito){
+      if(!deposito || !deposito.depositado) return { label:"Pendiente", cls:"stamp-bad" };
+      if(Number(deposito.monto)===Number(ventas)) return { label:"Completo", cls:"stamp-ok" };
+      if(Number(deposito.monto)<Number(ventas)) return { label:"Incompleto", cls:"stamp-warn" };
+      return { label:"Monto distinto", cls:"stamp-warn" };
+    }
+    function form(jornada, totalVentas, existing){
+      const overlay = openModal({ title:`Depósito — ${fmtDate(jornada.fecha)} (Ventas: ${fmtL(totalVentas)})`, submitLabel:"Guardar", bodyHtml:`
+        <div class="field"><label>¿Fue depositada la venta?</label><select name="depositado" id="sel-dep">
+          <option value="si" ${existing?.depositado?"selected":""}>Sí</option><option value="no" ${existing&&!existing.depositado?"selected":""}>No</option></select></div>
+        <div id="dep-si-fields">
+          <div class="form-row"><div class="field"><label>Monto depositado (L)</label><input type="number" step="0.01" name="monto" value="${existing?.monto??totalVentas}"></div>
+            <div class="field"><label>Banco</label><input name="banco" value="${existing?escapeHtml(existing.banco||""):""}"></div></div>
+          <div class="form-row"><div class="field"><label>Fecha del depósito</label><input type="date" name="fechaDeposito" value="${existing?.fechaDeposito||jornada.fecha}"></div>
+            <div class="field"><label>N.º de referencia</label><input name="referencia" value="${existing?escapeHtml(existing.referencia||""):""}"></div></div>
+        </div>
+        <div id="dep-no-fields" class="hidden"><div class="field"><label>Motivo</label><input name="motivo" value="${existing?escapeHtml(existing.motivo||""):""}"></div></div>
+        <div class="field"><label>Observación</label><textarea name="observacion" rows="2">${existing?escapeHtml(existing.observacion||""):""}</textarea></div>`,
+        onSubmit: async(fd)=>{
+          const depositado = fd.get("depositado")==="si";
+          if(depositado && !fd.get("referencia").trim()) throw new Error("El número de referencia es obligatorio cuando el depósito fue realizado.");
+          const data = { jornadaId:jornada.id, fecha:jornada.fecha, depositado, monto: depositado?(parseFloat(fd.get("monto"))||0):0,
+            banco: depositado?fd.get("banco").trim():"", fechaDeposito: depositado?fd.get("fechaDeposito"):"", referencia: depositado?fd.get("referencia").trim():"",
+            motivo: !depositado?fd.get("motivo").trim():"", observacion: fd.get("observacion").trim() };
+          if(existing) await updateDocById("depositos", existing.id, data); else await createDoc("depositos", data);
+          toast("Depósito guardado"); Views.depositos(root);
+        }});
+      const selDep = overlay.querySelector("#sel-dep"), fieldsSi = overlay.querySelector("#dep-si-fields"), fieldsNo = overlay.querySelector("#dep-no-fields");
+      const toggle = ()=>{ const si = selDep.value==="si"; fieldsSi.classList.toggle("hidden", !si); fieldsNo.classList.toggle("hidden", si); };
+      selDep.addEventListener("change", toggle); toggle();
+    }
+  },
+
+  async reportes(root){
+    const [jornadas, rutas, ventas, gastos, movs, combustible, mantenimientos, depositos] = await Promise.all([
+      listAll("jornadas"), listAll("rutas"), listAll("ventas"), listAll("gastos"), listAll("inventarioMovimientos"), listAll("combustible"), listAll("mantenimientos"), listAll("depositos")]);
+    const TABS = [["ventas","Ventas"],["inventario","Inventario"],["gastos","Gastos"],["vehiculo","Vehículo"],["banco","Banco"]];
+    root.innerHTML = `
+      <div class="filters"><input type="date" id="f-desde" title="Desde"><input type="date" id="f-hasta" title="Hasta">
+        <select id="f-ruta"><option value="">Todas las rutas</option>${rutas.map(r=>`<option value="${r.id}">${escapeHtml(r.nombre)}</option>`).join("")}</select></div>
+      <div class="nav" style="display:flex;padding:0;margin-bottom:18px;gap:4px;flex-wrap:wrap;">
+        ${TABS.map(([id,label],i)=>`<div class="nav-item tab-btn ${i===0?"active":""}" style="border-radius:999px;" data-tab="${id}">${label}</div>`).join("")}
+      </div><div id="rep-body"></div>`;
+    const desde = root.querySelector("#f-desde"), hasta = root.querySelector("#f-hasta"), fRuta = root.querySelector("#f-ruta");
+    let activeTab = "ventas";
+    [desde,hasta,fRuta].forEach(el=>el.addEventListener("change", draw));
+    root.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click", ()=>{
+      activeTab = b.dataset.tab; root.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active", x===b)); draw();
+    }));
+    function filterJornadaIds(){
+      return jornadas.filter(j=>{
+        if(desde.value && j.fecha<desde.value) return false;
+        if(hasta.value && j.fecha>hasta.value) return false;
+        if(fRuta.value && j.rutaId!==fRuta.value) return false;
+        return true;
+      }).map(j=>j.id);
+    }
+    function draw(){
+      const ids = new Set(filterJornadaIds());
+      const box = root.querySelector("#rep-body");
+      if(activeTab==="ventas"){
+        const rows = ventas.filter(v=>ids.has(v.jornadaId));
+        const total = sum(rows,"total");
+        const porProducto = groupSum(rows,"productoNombre","total"), porRuta = groupSum(rows,"rutaNombre","total");
+        box.innerHTML = statRow([["Ventas totales", fmtL(total), "pos"]]) +
+          `<div class="grid grid-2">${tableSimple("Por producto",["Producto","Total"],porProducto.map(([k,v])=>[escapeHtml(k),fmtL(v)]))}${tableSimple("Por ruta",["Ruta","Total"],porRuta.map(([k,v])=>[escapeHtml(k),fmtL(v)]))}</div>`;
+      }
+      if(activeTab==="inventario"){
+        const rows = movs.filter(m=>ids.has(m.jornadaId));
+        const cargado=sum(rows,"cargado"), vendido=sum(rows,"vendido"), devuelto=sum(rows,"devuelto"), diff=cargado-vendido-devuelto;
+        box.innerHTML = statRow([["Cargado",cargado],["Vendido",vendido],["Devuelto",devuelto],["Diferencia total",diff,diff===0?"pos":"neg"]]);
+      }
+      if(activeTab==="gastos"){
+        const rows = gastos.filter(g=>ids.has(g.jornadaId));
+        const total = sum(rows,"monto"), porCat = groupSum(rows,"categoria","monto");
+        box.innerHTML = statRow([["Gastos totales", fmtL(total), "neg"]]) + tableSimple("Por categoría",["Categoría","Total"], porCat.map(([k,v])=>[escapeHtml(k),fmtL(v)]));
+      }
+      if(activeTab==="vehiculo"){
+        const jr = jornadas.filter(j=>ids.has(j.id) && j.kmFinal!=null);
+        const km = jr.reduce((s,j)=>s+(j.kmFinal-j.kmInicial),0);
+        const rango = x => (!desde.value && !hasta.value) ? true : (x.fecha>=(desde.value||"0000") && x.fecha<=(hasta.value||"9999"));
+        const totalComb = sum(combustible.filter(rango),"total"), totalMant = sum(mantenimientos.filter(rango),"costo");
+        box.innerHTML = statRow([["Km recorridos (jornadas filtradas)",km],["Combustible", fmtL(totalComb),"neg"],["Mantenimiento / reparaciones", fmtL(totalMant),"neg"]]);
+      }
+      if(activeTab==="banco"){
+        const rows = depositos.filter(d=>ids.has(d.jornadaId));
+        const depositadas = rows.filter(d=>d.depositado);
+        const pendientes = jornadas.filter(j=>ids.has(j.id) && !rows.find(d=>d.jornadaId===j.id && d.depositado));
+        const totalDep = sum(depositadas,"monto"), totalVentasF = sum(ventas.filter(v=>ids.has(v.jornadaId)),"total");
+        box.innerHTML = statRow([["Ventas del período", fmtL(totalVentasF),"pos"],["Depositado", fmtL(totalDep),"pos"],
+          ["Diferencia", fmtL(totalVentasF-totalDep), totalVentasF-totalDep===0?"pos":"warn"],["Jornadas con depósito pendiente", pendientes.length, pendientes.length?"warn":"pos"]]);
+      }
+    }
+    draw();
+    function groupSum(arr,keyField,valField){ const map={}; arr.forEach(x=>{ const k=x[keyField]||"—"; map[k]=(map[k]||0)+(Number(x[valField])||0); }); return Object.entries(map).sort((a,b)=>b[1]-a[1]); }
+    function statRow(items){ return `<div class="grid grid-4" style="margin-bottom:18px;">${items.map(([label,val,cls])=>`<div class="stat"><div class="label">${escapeHtml(label)}</div><div class="value ${cls||""}">${val}</div></div>`).join("")}</div>`; }
+    function tableSimple(title,headers,rows){ return `<div class="card"><h3>${escapeHtml(title)}</h3><div class="table-wrap" style="border:none;"><table><thead><tr>${headers.map(h=>`<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${headers.length}" class="muted">Sin datos</td></tr>`}</tbody></table></div></div>`; }
+  },
+};
+
+function sum(arr, field){ return arr.reduce((s,x)=>s+(Number(x[field])||0),0); }
+function emptyState(icon, text){ return `<div class="empty-state">${icon?`<div class="es-icon">${icon}</div>`:""}<p>${escapeHtml(text)}</p></div>`; }
+
+const VIEW_META = {
+  dashboard:{ title:"Dashboard", sub:"Resumen del día de operación" },
+  jornada:{ title:"Jornada del día", sub:"Flujo completo: carga → ruta → ventas → cierre" },
+  rutas:{ title:"Rutas", sub:"Las 6 rutas comerciales y su asignación por día" },
+  productos:{ title:"Productos", sub:"Catálogo de productos y precios" },
+  inventario:{ title:"Inventario", sub:"Cargado, vendido, devuelto y diferencias por jornada" },
+  ventas:{ title:"Ventas", sub:"Registro de ventas por jornada, ruta y producto" },
+  gastos:{ title:"Gastos", sub:"Gastos diarios por categoría" },
+  vehiculo:{ title:"Vehículo", sub:"Kilometraje, combustible y mantenimiento" },
+  depositos:{ title:"Depósitos bancarios", sub:"Control de depósitos vs. ventas del día" },
+  reportes:{ title:"Reportes", sub:"Ventas, inventario, gastos, vehículo y banco" },
+};
+
+async function loadView(view){
+  const root = document.getElementById("view-root");
+  const meta = VIEW_META[view];
+  if(!meta) return;
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("active", el.dataset.view===view));
+  document.getElementById("view-title").textContent = meta.title;
+  document.getElementById("view-sub").textContent = meta.sub;
+  root.innerHTML = `<div class="empty-state"><p>Cargando…</p></div>`;
+  try { await Views[view](root); }
+  catch(err){ console.error(err); root.innerHTML = `<div class="empty-state"><p>No se pudo cargar esta sección. ${escapeHtml(err.message||"")}</p></div>`; }
+  document.getElementById("sidebar").classList.remove("open");
+}
+
+function initNav(){
+  document.querySelectorAll(".nav-item").forEach(el=>el.addEventListener("click", ()=>loadView(el.dataset.view)));
+  document.getElementById("logout-btn").addEventListener("click", async ()=>{ await logout(); });
+  document.getElementById("menu-toggle").addEventListener("click", ()=>document.getElementById("sidebar").classList.toggle("open"));
+}
+
+const loginScreen = document.getElementById("login-screen");
+const appShell = document.getElementById("app-shell");
+let navReady = false;
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    loginScreen.classList.add("hidden");
+    appShell.classList.remove("hidden");
+    const name = user.email.split("@")[0];
+    document.getElementById("user-avatar").textContent = name.slice(0,1).toUpperCase();
+    document.getElementById("user-name").textContent = name;
+    if(!navReady){ initNav(); navReady = true; }
+    loadView("dashboard");
+  } else {
+    appShell.classList.add("hidden");
+    loginScreen.classList.remove("hidden");
+  }
+});
+
+document.getElementById("login-form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const errBox = document.getElementById("login-error");
+  const btn = document.getElementById("login-btn");
+  errBox.style.display = "none";
+  btn.disabled = true; btn.textContent = "Ingresando…";
+  try {
+    await login(document.getElementById("email").value.trim(), document.getElementById("password").value);
+  } catch(err){
+    errBox.textContent = "Correo o contraseña incorrectos.";
+    errBox.style.display = "block";
+  } finally {
+    btn.disabled = false; btn.textContent = "Iniciar sesión";
+  }
+});
+</script>
+</body>
+</html>
